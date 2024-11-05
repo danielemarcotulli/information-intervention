@@ -16,5 +16,5 @@ make build -j4  # Adjust '4' based on available CPU cores
 cd ..
 
 # Set CMDSTAN environment variable
-export CMDSTAN="/opt/render/project/src/cmdstan-${CMDSTAN_VERSION}"
+export CMDSTAN="./src/"
 echo "CmdStan installed at $CMDSTAN"
