@@ -1,13 +1,17 @@
-# from cmdstanpy import install_cmdstan
+import os
+from cmdstanpy import install_cmdstan
 
-# # Install CmdStan if it’s not installed
-# try:
-#     import cmdstanpy
-#     cmdstanpy.cmdstan_path()
-# except ValueError:
-#     print("Installing CmdStan...")
-#     install_cmdstan()
+github_pat = os.getenv("GITHUB_PAT")
+if github_pat:
+    os.environ["GITHUB_TOKEN"] = github_pat
 
+try:
+    import cmdstanpy
+    cmdstanpy.cmdstan_path()
+except ValueError:
+    print("Installing CmdStan...")
+    install_cmdstan()
+    
 # app.py
 import dash
 from dash import html, dcc, Input, Output, State
