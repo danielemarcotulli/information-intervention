@@ -1,3 +1,13 @@
+from cmdstanpy import install_cmdstan
+
+# Install CmdStan if it’s not installed
+try:
+    import cmdstanpy
+    cmdstanpy.cmdstan_path()
+except ValueError:
+    print("Installing CmdStan...")
+    install_cmdstan()
+
 # app.py
 import dash
 from dash import html, dcc, Input, Output, State
