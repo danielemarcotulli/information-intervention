@@ -7,7 +7,7 @@ sudo apt-get update && sudo apt-get install -y build-essential
 CMDSTAN_VERSION="2.35.0"
 
 # Download and extract CmdStan
-wget https://github.com/stan-dev/cmdstan/releases/download/v${CMDSTAN_VERSION}/cmdstan-${CMDSTAN_VERSION}.tar.gz
+wget https://github.com/stan-dev/cmdstan/releases/download/v${CMDSTAN_VERSION}/cmdstan-${CMDSTAN_VERSION}.tar.gz  
 tar -xzf cmdstan-${CMDSTAN_VERSION}.tar.gz
 
 # Build CmdStan
@@ -16,5 +16,5 @@ make build -j4  # Adjust '4' based on available CPU cores
 cd ..
 
 # Set CMDSTAN environment variable
-export CMDSTAN="C:\Users\danie\.cmdstan-${CMDSTAN_VERSION}"
+export CMDSTAN="/opt/render/project/src/cmdstan-${CMDSTAN_VERSION}"
 echo "CmdStan installed at $CMDSTAN"
