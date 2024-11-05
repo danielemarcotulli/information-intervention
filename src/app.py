@@ -29,8 +29,8 @@ import networkx as nx
 import random
 
 # compile the Stan models 
-bounded_back_model = CmdStanModel(stan_file='bounded_back.stan')
-moving_se_sp_model = CmdStanModel(stan_file='moving_se_sp.stan')
+bounded_back_model = CmdStanModel(exe_file='bounded_back.stan')
+moving_se_sp_model = CmdStanModel(exe_file='moving_se_sp.stan')
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server  
