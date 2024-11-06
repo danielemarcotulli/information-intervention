@@ -1,4 +1,5 @@
 import os
+import logging
 from cmdstanpy import install_cmdstan
 
 github_pat = os.getenv("GITHUB_PAT")
@@ -476,6 +477,15 @@ def update_graph(n_clicks, N, alpha, lambd, eta, omega, mu, lambda_fade, k, b,
 
     return fig1, fig2, fig3
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logger.info("Starting the app...")
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8050))  # Default is 8050
-    app.run_server(host="0.0.0.0", port=port)
+    try:
+        port = int(os.environ.get("PORT", 8050))  # Default to 8050 for local testing
+        app.run_server(host="0.0.0.0", port=port)
+        logger.info(f"App running on port {port}")
+    except Exception as e:
+        logger.error(f"Failed to start the app: {e}")
