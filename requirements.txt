@@ -6,4 +6,5 @@ pandas
 plotly
 cmdstanpy
 gunicorn
-networkx
+network
+logging
