@@ -6,4 +6,4 @@ pandas
 plotly
 cmdstanpy
 gunicorn
-network
+networkx
