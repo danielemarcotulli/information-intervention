@@ -1,5 +1,4 @@
 import os
-import logging
 from cmdstanpy import install_cmdstan
 
 github_pat = os.getenv("GITHUB_PAT")
@@ -30,8 +29,8 @@ import networkx as nx
 import random
 
 # compile the Stan models 
-bounded_back_model = CmdStanModel(stan_file='bounded_back.stan')
-moving_se_sp_model = CmdStanModel(stan_file='moving_se_sp.stan')
+bounded_back_model = CmdStanModel(exe_file='bounded_back.stan')
+moving_se_sp_model = CmdStanModel(exe_file='moving_se_sp.stan')
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server  
@@ -477,14 +476,5 @@ def update_graph(n_clicks, N, alpha, lambd, eta, omega, mu, lambda_fade, k, b,
 
     return fig1, fig2, fig3
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-logger.info("Starting the app...")
-
 if __name__ == "__main__":
-    try:
-        app.run_server(host="0.0.0.0", port=8050)
-        logger.info(f"App running on port {8050}")
-    except Exception as e:
-        logger.error(f"Failed to start the app: {e}")
+    app.run_server(host='0.0.0.0', port='8050')
