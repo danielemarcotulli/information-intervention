@@ -484,8 +484,7 @@ logger.info("Starting the app...")
 
 if __name__ == "__main__":
     try:
-        port = int(os.environ.get("PORT", 8050))  # Default to 8050 for local testing
-        app.run_server(host="0.0.0.0", port=port)
-        logger.info(f"App running on port {port}")
+        app.run_server(host="0.0.0.0", port=8050)
+        logger.info(f"App running on port {8050}")
     except Exception as e:
         logger.error(f"Failed to start the app: {e}")
