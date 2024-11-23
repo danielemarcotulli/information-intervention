@@ -5,13 +5,6 @@ github_pat = os.getenv("GITHUB_PAT")
 if github_pat:
     os.environ["GITHUB_TOKEN"] = github_pat
 
-try:
-    import cmdstanpy
-    cmdstanpy.set_cmdstan_path('/app/cmdstan-2.35.0')
-except ValueError:
-    print("Installing CmdStan...")
-    install_cmdstan()
-    
 # app.py
 import dash
 from dash import html, dcc, Input, Output, State
