@@ -1,12 +1,12 @@
-# Dash Sidebar App Template: info-int
+# Run an information-intervention simulation online:
 
-Created on 2024-11-05 21:14:55.453487
+https://information-intervention.onrender.com/
 
-Welcome to your [Plotly Dash](https://plotly.com/dash/) App! This is a template for your info-int app.
 
-See [Faculty.ai](https://dash-bootstrap-components.opensource.faculty.ai/examples/) for more information.
 
-## Running the App
 
-Run `src/app.py` and navigate to http://127.0.0.1:8050/ in your browser.
+
+## Running the App locally:
+
+After downloading the repository, run `src/app.py` and navigate to http://127.0.0.1:8050/ in your browser.
 
