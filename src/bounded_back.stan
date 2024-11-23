@@ -10,13 +10,13 @@ data {
   array[N] int<lower=0> H;                // Number of people tested
   array[N] real t;                        // Time points
   real<lower=0,upper=1> Se;               // Sensitivity
+  real<lower=0> fp_influx_rate_alfa;      // Hyperparameter for the gamma prior
+  real<lower=0> fp_influx_rate_beta;      // Hyperparameter for the gamma prior
 }
 
 parameters {
   real<lower=0> fp_influx_rate;           // Rate of false positive influx
   real logit_init_fp_rate;                // Logit of initial false positive rate
-  real<lower=0> fp_influx_rate_alfa;
-  real<lower=0> fp_influx_rate_beta;
 }
 
 transformed parameters {
