@@ -5,6 +5,13 @@ github_pat = os.getenv("GITHUB_PAT")
 if github_pat:
     os.environ["GITHUB_TOKEN"] = github_pat
 
+try:
+    import cmdstanpy
+    cmdstanpy.set_cmdstan_path('/app/cmdstan-2.35.0')
+except ValueError:
+    print("Installing CmdStan...")
+    install_cmdstan()
+    
 # app.py
 import dash
 from dash import html, dcc, Input, Output, State
@@ -206,7 +213,7 @@ def prevalence_calc(sim_out_df, prevalence_method, Se, Sp, N):
         }
 
         # Run Stan model
-        fit = moving_se_sp_model.sample(data=stan_data, chains=4, parallel_chains=4, iter_sampling=2000, iter_warmup=1000)
+        fit = moving_se_sp_model.sample(data=stan_data, chains=4, parallel_chains=4, iter_sampling=2000, iter_warmup=1000, show_console=True)
         output_df['clinic_prevalence'] = fit.stan_variable('apparent_prev').mean(axis=0)
         output_df['true_positives'] = fit.stan_variable('true_positives').mean(axis=0)
         output_df['false_positives'] = fit.stan_variable('false_positives').mean(axis=0)
@@ -225,7 +232,7 @@ def prevalence_calc(sim_out_df, prevalence_method, Se, Sp, N):
         }
 
         # Run Stan model
-        fit = bounded_back_model.sample(data=stan_data, chains=4, parallel_chains=4, iter_sampling=2000, iter_warmup=1000)
+        fit = bounded_back_model.sample(data=stan_data, chains=4, parallel_chains=4, iter_sampling=2000, iter_warmup=1000, show_console=True)
         output_df['clinic_prevalence'] = fit.stan_variable('tested_prev_gen').mean(axis=0)
         output_df['true_positives'] = fit.stan_variable('true_positives').mean(axis=0)
         output_df['false_positives'] = fit.stan_variable('false_positives').mean(axis=0)

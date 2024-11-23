@@ -33,6 +33,8 @@ WORKDIR /app/src
 # Copy your application code into the container
 COPY . /app/src
 
+RUN chmod +x . /app/src/bounded_back
+RUN chmod +x . /app/src/moving_se_sp
 
 # Expose the port your Dash app will run on
 EXPOSE 8050
