@@ -7,7 +7,7 @@ if github_pat:
 
 try:
     import cmdstanpy
-    cmdstanpy.set_cmdstan_path(os.environ['CMDSTAN'])
+    cmdstanpy.set_cmdstan_path('/app/cmdstan-2.35.0')
 except ValueError:
     print("Installing CmdStan...")
     install_cmdstan()

@@ -26,11 +26,17 @@ RUN wget https://github.com/stan-dev/cmdstan/releases/download/v${CMDSTAN_VERSIO
 # Set CMDSTAN environment variable
 ENV CMDSTAN=/app/cmdstan-${CMDSTAN_VERSION}
 
-# Copy the rest of your application code
-COPY . .
+
+# Set the working directory to /app/src
+WORKDIR /app/src
+
+# Copy your application code into the container
+COPY . /app/src
+
 
 # Expose the port your Dash app will run on
 EXPOSE 8050
+
 
 # Command to run your application
 CMD ["python", "app.py"]
