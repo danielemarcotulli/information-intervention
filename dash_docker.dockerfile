@@ -5,6 +5,10 @@ FROM python:3.9-slim-buster
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     wget \
+    make \
+    g++ \
+    libtbb2 \
+    libtbb-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
@@ -16,29 +20,34 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install CmdStan
 ENV CMDSTAN_VERSION=2.35.0
-RUN wget https://github.com/stan-dev/cmdstan/releases/download/v${CMDSTAN_VERSION}/cmdstan-${CMDSTAN_VERSION}.tar.gz \
-    && tar -xzf cmdstan-${CMDSTAN_VERSION}.tar.gz \
-    && rm cmdstan-${CMDSTAN_VERSION}.tar.gz \
-    && cd cmdstan-${CMDSTAN_VERSION} \
-    && make build -j4 \
-    && cd /app
+RUN mkdir -p /opt && \
+    cd /opt && \
+    wget https://github.com/stan-dev/cmdstan/releases/download/v${CMDSTAN_VERSION}/cmdstan-${CMDSTAN_VERSION}.tar.gz && \
+    tar -xzvf cmdstan-${CMDSTAN_VERSION}.tar.gz && \
+    rm cmdstan-${CMDSTAN_VERSION}.tar.gz && \
+    mv cmdstan-${CMDSTAN_VERSION} cmdstan && \
+    cd cmdstan && \
+    make build -j4
 
-# Set CMDSTAN environment variable
-ENV CMDSTAN=/app/cmdstan-${CMDSTAN_VERSION}
+# Set environment variable for CmdStan path
+ENV CMDSTAN=/opt/cmdstan
 
+# Copy your application code into the container
+COPY . /app
 
 # Set the working directory to /app/src
 WORKDIR /app/src
 
-# Copy your application code into the container
-COPY . /app/src
+# Compile Stan models
+RUN /opt/cmdstan/bin/stanc --version && \
+    make bounded_back moving_se_sp
 
-RUN chmod +x . /app/src/bounded_back
-RUN chmod +x . /app/src/moving_se_sp
+# Ensure the Stan model executables are executable
+RUN chmod +x /app/src/bounded_back
+RUN chmod +x /app/src/moving_se_sp
 
 # Expose the port your Dash app will run on
 EXPOSE 8050
-
 
 # Command to run your application
 CMD ["python", "app.py"]

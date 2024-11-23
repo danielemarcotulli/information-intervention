@@ -1,18 +1,11 @@
+from cmdstanpy import set_cmdstan_path, CmdStanModel
 import os
-from cmdstanpy import install_cmdstan
 
-github_pat = os.getenv("GITHUB_PAT")
-if github_pat:
-    os.environ["GITHUB_TOKEN"] = github_pat
+# Set the CmdStan path to where it's installed in the Dockerfile
+set_cmdstan_path('/opt/cmdstan')
 
-try:
-    import cmdstanpy
-    cmdstanpy.set_cmdstan_path('/app/cmdstan-2.35.0')
-except ValueError:
-    print("Installing CmdStan...")
-    install_cmdstan()
-    
-# app.py
+# Remove any code that attempts to install CmdStan at runtime
+
 import dash
 from dash import html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
@@ -22,15 +15,12 @@ import pandas as pd
 from scipy.integrate import odeint
 import plotly.graph_objs as go
 
-from cmdstanpy import CmdStanModel
-import os
-
 import networkx as nx
 import random
 
-# compile the Stan models 
-bounded_back_model = CmdStanModel(exe_file='bounded_back')
-moving_se_sp_model = CmdStanModel(exe_file='moving_se_sp')
+# Initialize the Stan models with stan_file
+bounded_back_model = CmdStanModel(stan_file='bounded_back.stan')
+moving_se_sp_model = CmdStanModel(stan_file='moving_se_sp.stan')
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server  
