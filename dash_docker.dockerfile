@@ -46,6 +46,8 @@ RUN /opt/cmdstan/bin/stanc --version && \
 RUN chmod +x /app/src/bounded_back
 RUN chmod +x /app/src/moving_se_sp
 
+RUN chmod 755 /app/src/bounded_back /app/src/moving_se_sp
+
 # Expose the port your Dash app will run on
 EXPOSE 8050
 

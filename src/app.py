@@ -1,8 +1,11 @@
 from cmdstanpy import set_cmdstan_path, CmdStanModel
 import os
 
+os.chmod('/app/src/bounded_back', 0o755)
+os.chmod('/app/src/moving_se_sp', 0o755)
 # Set the CmdStan path to where it's installed in the Dockerfile
 set_cmdstan_path('/opt/cmdstan')
+
 
 # Remove any code that attempts to install CmdStan at runtime
 
