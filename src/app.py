@@ -467,4 +467,4 @@ def update_graph(n_clicks, N, alpha, lambd, eta, omega, mu, lambda_fade, k, b,
     return fig1, fig2, fig3
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, host="0.0.0.0")
