@@ -186,14 +186,14 @@ def prevalence_calc(sim_out_df, prevalence_method, Se, Sp, N):
     })
 
     if prevalence_method == 'back-calculate':
-        output_df['clinic_prevalence'] = (D / HS - (1 - Sp)) / (Se + Sp - 1)
-        output_df['true_positives'] = output_df['clinic_prevalence'] * HS * Se
-        output_df['false_positives'] = (1 - output_df['clinic_prevalence']) * HS * (1 - Sp)
+        output_df['clinic_prevalence'] = np.clip((D / HS - (1 - Sp)) / (Se + Sp - 1), 0, None)
+        output_df['true_positives'] = np.clip(output_df['clinic_prevalence'] * HS * Se, 0, None)
+        output_df['false_positives'] = np.clip((1 - output_df['clinic_prevalence']) * HS * (1 - Sp), 0, None)
 
     elif prevalence_method == 'simple':
-        output_df['clinic_prevalence'] = D / HS
-        output_df['true_positives'] = output_df['clinic_prevalence'] * HS * Se
-        output_df['false_positives'] = (1 - output_df['clinic_prevalence']) * HS * (1 - Sp)
+        output_df['clinic_prevalence'] = np.clip(D / HS, 0, None)
+        output_df['true_positives'] = np.clip(output_df['clinic_prevalence'] * HS * Se, 0, None)
+        output_df['false_positives'] = np.clip((1 - output_df['clinic_prevalence']) * HS * (1 - Sp), 0, None)
 
     elif prevalence_method == 'bayesian_moving_se_sp':
         # Prepare data for Stan model
