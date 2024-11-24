@@ -48,6 +48,9 @@ RUN chmod +x /app/src/moving_se_sp
 
 RUN chmod 755 /app/src/bounded_back /app/src/moving_se_sp
 
+RUN mv /app/src/bounded_back /usr/local/bin/ && \
+    mv /app/src/moving_se_sp /usr/local/bin/
+
 # Expose the port your Dash app will run on
 EXPOSE 8050
 
