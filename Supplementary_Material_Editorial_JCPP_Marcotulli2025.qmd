@@ -1,0 +1,362 @@
+---
+title: "Supplementary_JCPP_2025_InformtionIntervention"
+author: "Daniele Marcotulli and Argyris Stringaris"
+format: html
+editor: visual
+---
+
+## Extended Material for "***What is the impact of information interventions for mental health? An evaluation framework for policy makers, clinicians and researchers"***
+
+#### [*Modelling of the direct effect of information intervention.*]{.underline}
+
+We assume that the effect of *information intervention* increases with both the number of *susceptible* individuals and the proportion of aware people within the total population. These relationships can be mathematically expressed as:
+
+*Equation 1:*
+
+$$
+Direct Information Effect = (A/N)S⍺
+$$
+
+Where:
+
+● A is the number of already aware people.
+
+● N is the total population.
+
+● S is the number of susceptible people.
+
+● α is a parameter reflecting the efficacy of information intervention and ranging from 0 to 1
+
+In equation 1, the impact of an information intervention is set to be greater if the proportion of aware individuals is higher., until saturation. Similarly, the effect will be greater when the susceptible population is larger (the number of people that could potentially transition to the *aware* state is proportional to the number of susceptible individuals).
+
+#### [*Modelling of the indirect effect through individuals’ networks.*]{.underline}
+
+We model the effect of the individuals’ network (i.e. the indirect effect of the information intervention) using a sigmoidal function derived from the standard population growth curves and basic infection spread models. We assume that the individuals’ networks effect increases with network density (i.e. how many and how frequent contacts individuals have). Similar to the direct effect, the indirect influences susceptible individuals (S) and its impact increases when there are more susceptible individuals (S).
+
+*Equation 2:*
+
+$$
+ IndirectInformatioEffect = \frac{\text{max}}{1 + e^{-k \cdot \frac{D*2 + HS*1.5 + (A - D - HS)}{N}}} S𝜆⍴
+$$ {#eq-sigmoidal}
+
+```{r}
+#code use to define the sigmoidal process
+sigmoid <- function(x, max, k) {  max / (1 + exp(-k * (x))) }  
+```
+
+● *max* is a carrying capacity, defining an upper limit to the effect.
+
+● D is the number of diagnosed individuals (who are arbitrarily assigned a doubled weight in awareness spread)
+
+● HS is the number of help-seeking individuals.
+
+● To avoid double counting individuals, we subtract the number of diagnosed individuals and the number of individuals seeking help from the total number of aware individuals (A).
+
+● We set the parameter ω to be 0.5 to simulate the requirement for at least two close contacts with individuals with a mental health condition before a subject starts seeking help (halved steepness). The parameter ω controls the steepness of the curve, with smaller ω reducing the rate of awareness increase. Figure 2.
+
+● ρ is network density.
+
+● λ  is a parameter that controls the impact of the network on awareness spread.
+
+In an alternative approach, we model information spread through social network in with small-world network theory:
+
+```{r}
+spread_awareness_network <- function(S, A, D, HS, time_steps) {
+  # Step 1: Define parameters for the small-world network
+  n <- S  # Number of nodes in the susceptible population
+  k <- 4  # Each node is joined with its k nearest neighbors in a ring topology
+  p <- 0.01 # The probability of rewiring each edge
+
+  # Step 2: Generate the small-world network
+  G <- sample_smallworld(dim = 1, size = n, nei = k/2, p = p)
+
+  # Ensure the number of aware nodes does not exceed the population size
+  initially_aware <- min(A, n)  
+
+  # Step 3: Initialize the nodes' awareness status
+  awareness <- rep(0, n)
+  if (initially_aware > 0) {
+    aware_nodes <- sample(V(G), initially_aware)
+    awareness[aware_nodes] <- 1
+  }
+
+  # Step 4: Simulate the spread of awareness over multiple time steps
+  for (step in 1:time_steps) {
+    new_awareness <- awareness  # Create a copy to store new awareness states
+    
+    for (node in which(awareness == 1)) {
+      node_neighbors <- neighbors(G, node)
+      for (neighbor in node_neighbors) {
+        if (awareness[neighbor] == 0) {
+          if (runif(1) < p) {
+            new_awareness[neighbor] <- 1
+          }
+        }
+      }
+    }
+    
+    awareness <- new_awareness  # Update awareness after processing all nodes
+  }
+
+  # Return the number of new aware individuals after time_steps
+  return(sum(awareness) - initially_aware)
+}
+```
+
+And allow the user to select the preferred approach:
+
+```{r}
+spread_mode <- function(awareness_mode, S, A, D, HS, lambda, rho, time_steps, D_weight, HS_weight, A_weight, N) {
+  if (awareness_mode == 'small_world') {
+    # Spread awareness using small-world network
+    new_aware_count <- spread_awareness_network(S = S, A =A, D =D, HS =HS, time_steps = time_steps)
+  } else {
+    # Spread awareness using the sigmoid function
+    S_A  <- sigmoid(((D * D_weight) + (HS * HS_weight) + ((A - HS - D) * A_weight)) / N, 0.8, k = 0.5)
+    new_aware_count <- S_A * lambda * S * rho
+  }
+  return(new_aware_count)
+}
+```
+
+**To summarise**, the total impact of an intervention is the sum of the direct and indirect effect. The number of aware individuals at any given time is modelled by subtracting the number of individuals losing awareness from those acquiring awareness due to the intervention:
+
+*Equation 3:*
+
+$$
+Awareness = Direct + IndirectInformationEffect - 𝜀A
+$$
+
+Where:
+
+ε is the awareness fading rate.
+
+Similarly, we model the process that **leads aware individuals to seek help**. The main difference from what is described above is that this process affects the already aware individuals.
+
+#### [*Modelling the diagnostic process*]{.underline}
+
+To model the diagnostic process in the context of dynamically changing help-seeking behaviours, we take into account the limited capacity of the mental health system by defining a strict saturation parameter, which – we assume - saturates at 30% of the total population. Indeed, most mental health systems are taking care of less than 30% of the population and significant workforce shortages are observed (Health Resources and Services Administration).
+
+The saturation parameter (σ) is defined as:
+
+*Equation 4:*
+
+$$
+𝜎 = \frac{D}{0.3 N} \
+$$
+
+```{r}
+#code to define the saturation function
+saturation <- function(P, K) { return(1 - P / K) } 
+```
+
+The probability that a practitioner diagnoses a psychiatric disorder (W~d~) is influenced by both the information intervention and societal pressure, which is proportional to the number of already diagnosed individuals. We assume that the probability of diagnosis W~d~ increases exponentially with the proportion of already diagnosed individuals (D/N), according to the following equation:
+
+*Equation 5:*
+
+$$
+W_d = 1 - e^{-\beta \frac{D}{N}} \
+$$
+
+Where:
+
+β is a constant parameter that could be translated to the weight of the impact of societal pressure.
+
+Thus, the rate new diagnoses (*W~d~*) in the help-seeking population will be given by:
+
+*Equation 6:*
+
+$$
+R_d = \omega \sigma W_d \, HS \
+$$
+
+Where:
+
+● ω is a constant parameter.
+
+With the following codes, we allow the user to choose whether they want to model the societal pressures on diagnosticians or not:
+
+```{r}
+practitioner <- 'influenced'  
+#the parameter take the 'influenced' or 'not_influenced' values for the 2 modes. 
+#The influenced means that the practitioners are influenced by the information intervention directly and indirectly. Since we don't have empirical data to support the choice of the parameters and the functional form of the influence, we can run the model with different functional forms and compare the results.
+
+influence_practitioner <- function(practitioner, S_D, HS, k, W_d, p_d) {
+  if (practitioner == "influenced") {
+    q_d <- k * HS * S_D * W_d * (1 + alpha)
+  } else {
+    q_d <- 0.6 * p_d 
+  }
+  return(q_d)
+}
+
+```
+
+And the functional form of the influence on practitioners.
+
+```{r}
+#code to define the functional form of the diagnosis rate when practitioner is influenced
+form <- 'exponential'  #the parameter take the 'exponential' or 'saturation' values for the 2 modes, we consider both functional forms since we don't have empirical data to support the choice of the parameters and the functional form of the influence of information interventions on practitioners, we can run the model with different functional forms and compare the results.
+
+exponential_diagnosis <- function(form, b, P, K) {
+  if (form == "exponential") {
+    w_d <- 1 - exp(-b * (P))
+  } else {
+    w_d <- saturation(P, K) 
+  }
+  return(w_d)
+}
+```
+
+**Run the model**
+
+Define initial values for the differential equation.
+
+```{r}
+
+N <- 10000        # Total population size: 1 mln adolescents
+
+alpha <- 0.01        # Constant: Rate of awareness transmission per media campaigns 
+lambda <- 0.05       # Constant: Awareness spread rate due to contact
+eta <- 0.05          # Constant: Rate of seeking help from aware
+omega <- 0.005       # Constant: Help Seeking recovery rate
+mu <- 0.01           # Constant: Illness recovery rate
+epsilon <- 0.02      # Constant: Rate of awareness fading
+k <- 0.35            # Constant: base diagnosis rate
+b <- 1.1
+
+D_weight = 2         #weight of diagnosed individuals in spreading awareness
+HS_weight = 1.5      #weight of help seeking individuals in spreading awareness
+A_weight = 1         #weight of aware individuals in spreading awareness
+
+Sfrac  = 0.70        # percentage of susceptible people of the total population N
+Afrac  = 0.20        # percentage of people already aware of the total population N
+HSfrac = 0.14        # percentage of people seeking help of the total population N
+Dfrac  = 0.05        # percentage of people with a diagnosis of the total population N
+
+
+nnt <- 8             #number needed to treat
+nnh <- 12            #number needed to harm
+
+responders_op_rate <- 1/nnt #percentage of responders over_placebo
+harmed_op_rate <- 1/nnh #percentage of harmed patients over_placebo
+
+```
+
+```{r}
+initial_state <- c(S = Sfrac * N, A = Afrac * N, HS = HSfrac * N, D = Dfrac * N)
+
+time <- seq(1, 49, by = 1) # 48 months period
+```
+
+```{r}
+model <- function(time, state, parameters) {
+  
+  # the population categories
+  S <- state["S"]     # Susceptible = 1- A
+  A <- state["A"]     # Aware 
+  HS <- state["HS"]   # Help Seeking
+  D <- state["D"]     # Diagnosis
+  
+  #define the network density at each step
+  rho <- model_network_density(time = time, 
+                                base_density = base_density,
+                                peak_density = peak_density,
+                                peak_months = peak_months)
+
+  
+  # Calculate sigmoidal effects of state transitions
+  S_A  <- sigmoid(((D*D_weight) + (HS* HS_weight) + (A*A_weight - HS - D))/N,  0.8,  k = 0.5) 
+  S_HS <- sigmoid(((D*D_weight) + (HS* HS_weight) + (A*A_weight - HS - D))/N,  0.6,  k = 0.5)
+  
+  #Calculate saturation effect on the rate of diagnoses
+  S_D  <- saturation(D/N,  0.3) #we assume the capacity of the mental health system to be no more than 30% of the entire population...
+  
+  # Calculate rates of spread
+   r_d <- spread_mode(awareness_mode = 'small_world', 
+                     S = S, A = A, D = D, HS = HS, 
+                     lambda = lambda, rho = rho, 
+                     time_steps = 1, 
+                     D_weight = D_weight, 
+                     HS_weight = HS_weight, 
+                     A_weight = A_weight, 
+                     N = N)  #awareness spread only among susceptible people, according to a constant lambda and to the network density following a sigmoidal trend
+  
+   
+   p_d <- S_HS * eta * A * rho  #awareness to help seeking transition rate
+  
+  w_d <- exponential_diagnosis(form, b, D/N, 0.5) #willingness to diagnose
+  #form == 'exponential'   1- exp(-b * (D/N))
+  #form == 'saturation'    1 - ((D/N)/0.5)
+  
+  
+  q_d <- influence_practitioner(practitioner, S_D, HS, k, w_d) 
+  #influenced == q_d <- k * HS * S_D * W_d 
+  #if not_influenced == q_d <- 0.6 * p_d
+  
+
+  # Differential equations for state transitions
+  dA  <-  alpha * S * (A / N) + r_d  - epsilon * A 
+  dHS <-  p_d - (omega * HS) 
+  dD  <-  q_d - (mu * D)
+  dS  <-  -dA 
+  
+  return(list(c(dS, dA, dHS, dD)))
+}
+```
+
+```{r}
+#| echo: false
+# Run the model
+out <- ode(y = initial_state, times = time, func = model, parms = NULL)
+```
+
+```{r}
+#| echo: false
+#Create a dataframe with results
+out <- as.data.frame(out)
+colnames(out) <- c("time", "Susceptible", "Aware", "Help_Seeking", "Diagnosed")
+
+# Check total population: susceptible + aware should be constant over time
+out$Total <- out$Susceptible + out$Aware 
+```
+
+Plot the results
+
+```{r}
+
+# Plot results
+out_long <- tidyr::pivot_longer(out, cols = c("Susceptible", "Aware", "Help_Seeking", "Diagnosed"), names_to = "state", values_to = "count")
+trends = ggplot(out_long, aes(x = time, y = count, color = state)) +
+  geom_line() +
+  labs(title = "Dynamics of Awareness and Diagnoses Spread with Sigmoidal Saturation", x = "Time", y = "Number of People") +
+  theme_minimal()
+
+ggsave(file="trends.svg", plot=trends, width=12, height=8)
+trends
+
+```
+
+#### [*Modelling true and false positive*]{.underline}
+
+[*Approach 1.*]{.underline}
+
+We estimate the true positives from the total number of diagnoses using a Bayesian framework that allows us to update estimates based on prior knowledge, in this case, trends in both the number of diagnoses and false positives. As per our hypothesis, we assume that the false positive influx is non-negative. Conservatively, we set the false positive influx to be around 0, modelling it with a normal distribution with mean of 0 and standard deviation of 0.1.
+
+For the results presented here and in line with literature (Richardson et al., 2010), we assume the initial false positive rate to be around 20%. We also allow the diagnostic specificity to change as the number of false positives changes.
+
+The specificity of a test can be defined as:
+
+*Equation 7:*
+
+$$
+Specificity = 1-FalsePositiveRate
+$$
+
+At any given time, the true prevalence of a condition can then be derived using the Rogan-Gladen method (Rogan & Gladen, 1978), which we bound between 0 and 1 to avoid overestimation of true prevalence.
+
+[*Approach 2.*]{.underline}
+
+In an alternative approach, we consider that the diagnostic properties are dynamic, adapting to contextual factors and societal changes and expectations. Accordingly, we model the diagnostic sensitivity and specificity in a Bayesian framework where they are allowed to change over time in response to shifts in the help-seeking population and apparent prevalence.
+
+*The Stan codes for the bayesian modeling of the diagnostic process and their outcomes can be found in this github directory.*
